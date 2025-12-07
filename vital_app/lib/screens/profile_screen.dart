@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'chat_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -218,6 +219,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
+                            
+                            // Chat Button
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const ChatScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.chat),
+                              label: const Text(
+                                'Open Chat',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                             
                             // Sign Out Button
                             OutlinedButton(
