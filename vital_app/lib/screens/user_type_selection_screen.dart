@@ -23,20 +23,20 @@ class UserTypeSelectionScreen extends StatelessWidget {
               Text(
                 'Welcome to Vital App',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 'Please select your user type to continue',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
-              
+
               // Clinician Card
               _buildUserTypeCard(
                 context,
@@ -47,13 +47,14 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => LoginScreen(userType: UserType.clinician),
+                      builder: (context) =>
+                          LoginScreen(userType: UserType.clinician),
                     ),
                   );
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Patient Card
               _buildUserTypeCard(
                 context,
@@ -64,13 +65,14 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => LoginScreen(userType: UserType.patient),
+                      builder: (context) =>
+                          LoginScreen(userType: UserType.patient),
                     ),
                   );
                 },
               ),
               const SizedBox(height: 16),
-              
+
               // Admin Card
               _buildUserTypeCard(
                 context,
@@ -81,7 +83,8 @@ class UserTypeSelectionScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (context) => LoginScreen(userType: UserType.admin),
+                      builder: (context) =>
+                          LoginScreen(userType: UserType.admin),
                     ),
                   );
                 },
@@ -103,9 +106,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
   }) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -119,11 +120,7 @@ class UserTypeSelectionScreen extends StatelessWidget {
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 32,
-                ),
+                child: Icon(icon, color: color, size: 32),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -140,19 +137,12 @@ class UserTypeSelectionScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Colors.grey[400],
-                size: 20,
-              ),
+              Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 20),
             ],
           ),
         ),
@@ -160,4 +150,3 @@ class UserTypeSelectionScreen extends StatelessWidget {
     );
   }
 }
-

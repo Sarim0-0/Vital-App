@@ -6,11 +6,8 @@ import 'patient_profile_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   final UserType userType;
-  
-  const SignUpScreen({
-    super.key,
-    required this.userType,
-  });
+
+  const SignUpScreen({super.key, required this.userType});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -24,7 +21,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -50,7 +47,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final age = int.parse(_ageController.text.trim());
-      
+
       if (age < 1 || age > 150) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -63,8 +60,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return;
       }
 
-      final userType = widget.userType == UserType.clinician ? 'clinician' : 'patient';
-      
+      final userType = widget.userType == UserType.clinician
+          ? 'clinician'
+          : 'patient';
+
       await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -80,7 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        
+
         // Navigate to appropriate profile screen
         if (widget.userType == UserType.clinician) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -117,8 +116,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   String _getUserTypeTitle() {
-    return widget.userType == UserType.clinician 
-        ? 'Clinician Sign Up' 
+    return widget.userType == UserType.clinician
+        ? 'Clinician Sign Up'
         : 'Patient Sign Up';
   }
 
@@ -141,12 +140,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 Text(
                   'Create Account',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Name field
                 TextFormField(
                   controller: _nameController,
@@ -168,7 +167,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Age field
                 TextFormField(
                   controller: _ageController,
@@ -194,7 +193,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Email field
                 TextFormField(
                   controller: _emailController,
@@ -220,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
@@ -230,7 +229,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -252,7 +253,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Confirm Password field
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -262,7 +263,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        _obscureConfirmPassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -284,7 +287,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Sign Up button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleSignUp,
@@ -300,22 +303,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
-                      : const Text(
-                          'Sign Up',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                      : const Text('Sign Up', style: TextStyle(fontSize: 16)),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Login link
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Already have an account? Log In'),
                 ),
-                
+
                 // Back to user type selection
                 TextButton(
                   onPressed: () {

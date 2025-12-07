@@ -18,19 +18,22 @@ class AuthService {
   }) async {
     try {
       // Create user account
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       // Store user profile data in Firestore - use separate collections
-      final collectionName = userType == 'clinician' ? 'clinicians' : 'patients';
-      await _firestore.collection(collectionName).doc(userCredential.user?.uid).set({
-        'name': name,
-        'age': age,
-        'email': email,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final collectionName = userType == 'clinician'
+          ? 'clinicians'
+          : 'patients';
+      await _firestore
+          .collection(collectionName)
+          .doc(userCredential.user?.uid)
+          .set({
+            'name': name,
+            'age': age,
+            'email': email,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -59,10 +62,18 @@ class AuthService {
 
   // Get user profile data from Firestore
   // userType should be 'clinician' or 'patient'
-  Future<Map<String, dynamic>?> getUserProfile(String uid, String userType) async {
+  Future<Map<String, dynamic>?> getUserProfile(
+    String uid,
+    String userType,
+  ) async {
     try {
-      final collectionName = userType == 'clinician' ? 'clinicians' : 'patients';
-      DocumentSnapshot doc = await _firestore.collection(collectionName).doc(uid).get();
+      final collectionName = userType == 'clinician'
+          ? 'clinicians'
+          : 'patients';
+      DocumentSnapshot doc = await _firestore
+          .collection(collectionName)
+          .doc(uid)
+          .get();
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>?;
       }
@@ -102,4 +113,3 @@ class AuthService {
     }
   }
 }
-

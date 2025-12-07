@@ -23,7 +23,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _sendMessage() async {
     final message = _textController.text.trim();
-    
+
     if (message.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -88,116 +88,122 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                       )
                     : _errorMessage != null
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 64,
-                                  color: Colors.red[300],
-                                ),
-                                const SizedBox(height: 16),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: TextStyle(
-                                      color: Colors.red[700],
-                                      fontSize: 16,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    setState(() {
-                                      _errorMessage = null;
-                                    });
-                                  },
-                                  icon: const Icon(Icons.refresh),
-                                  label: const Text('Try Again'),
-                                ),
-                              ],
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red[300],
                             ),
-                          )
-                        : _lastResponse == null
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                            const SizedBox(height: 16),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                              ),
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red[700],
+                                  fontSize: 16,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                setState(() {
+                                  _errorMessage = null;
+                                });
+                              },
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Try Again'),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _lastResponse == null
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Start a conversation',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Enter a message below and tap send',
+                              style: TextStyle(
+                                color: Colors.grey[500],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        child: Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
                                     Icon(
-                                      Icons.chat_bubble_outline,
-                                      size: 64,
-                                      color: Colors.grey[400],
+                                      Icons.smart_toy,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 20,
                                     ),
-                                    const SizedBox(height: 16),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'Start a conversation',
+                                      'Response',
                                       style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Enter a message below and tap send',
-                                      style: TextStyle(
-                                        color: Colors.grey[500],
-                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     ),
                                   ],
                                 ),
-                              )
-                            : SingleChildScrollView(
-                                child: Card(
-                                  elevation: 2,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              Icons.smart_toy,
-                                              color: Theme.of(context).colorScheme.primary,
-                                              size: 20,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Response',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Theme.of(context).colorScheme.primary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          _lastResponse!,
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            height: 1.5,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _lastResponse!,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    height: 1.5,
                                   ),
                                 ),
-                              ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
               ),
             ),
-            
+
             // Divider
             const Divider(height: 1),
-            
+
             // Input area
             Container(
               padding: const EdgeInsets.all(16.0),
@@ -226,8 +232,9 @@ class _ChatScreenState extends State<ChatScreen> {
                           vertical: 12,
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).inputDecorationTheme.fillColor ??
-                                   Colors.grey[100],
+                        fillColor:
+                            Theme.of(context).inputDecorationTheme.fillColor ??
+                            Colors.grey[100],
                       ),
                       maxLines: null,
                       textCapitalization: TextCapitalization.sentences,
@@ -249,13 +256,12 @@ class _ChatScreenState extends State<ChatScreen> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white,
+                                ),
                               ),
                             )
-                          : const Icon(
-                              Icons.send,
-                              color: Colors.white,
-                            ),
+                          : const Icon(Icons.send, color: Colors.white),
                       tooltip: 'Send message',
                     ),
                   ),
@@ -268,4 +274,3 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 }
-

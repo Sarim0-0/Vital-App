@@ -24,7 +24,7 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     final user = _authService.currentUser;
-    
+
     if (user == null) {
       setState(() {
         _errorMessage = 'No user logged in';
@@ -52,7 +52,9 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
       await _authService.signOut();
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const UserTypeSelectionScreen()),
+          MaterialPageRoute(
+            builder: (context) => const UserTypeSelectionScreen(),
+          ),
           (route) => false,
         );
       }
@@ -84,193 +86,178 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
       ),
       body: SafeArea(
         child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(),
-              )
+            ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Colors.red[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage!,
-                          style: TextStyle(
-                            color: Colors.red[700],
-                            fontSize: 16,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _loadUserProfile,
-                          child: const Text('Retry'),
-                        ),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red[700], fontSize: 16),
+                      textAlign: TextAlign.center,
                     ),
-                  )
-                : _userProfile == null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.person_off,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No profile data found',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _loadUserProfile,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : _userProfile == null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No profile data found',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  ],
+                ),
+              )
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+                    // Profile Icon
+                    Center(
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundColor: Colors.blue,
+                        child: Text(
+                          _userProfile!['name']?[0].toUpperCase() ?? 'C',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    : SingleChildScrollView(
-                        padding: const EdgeInsets.all(24.0),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Profile Card
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 20),
-                            // Profile Icon
-                            Center(
-                              child: CircleAvatar(
-                                radius: 60,
-                                backgroundColor: Colors.blue,
-                                child: Text(
-                                  _userProfile!['name']?[0].toUpperCase() ?? 'C',
-                                  style: const TextStyle(
-                                    fontSize: 48,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.local_hospital,
+                                  color: Colors.blue,
+                                  size: 24,
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            
-                            // Profile Card
-                            Card(
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(20.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.local_hospital,
-                                          color: Colors.blue,
-                                          size: 24,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Clinician Information',
-                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 24),
-                                    
-                                    // Name
-                                    _buildProfileItem(
-                                      context,
-                                      icon: Icons.person,
-                                      label: 'Name',
-                                      value: _userProfile!['name'] ?? 'Not set',
-                                    ),
-                                    const SizedBox(height: 20),
-                                    
-                                    // Age
-                                    _buildProfileItem(
-                                      context,
-                                      icon: Icons.calendar_today,
-                                      label: 'Age',
-                                      value: _userProfile!['age']?.toString() ?? 'Not set',
-                                    ),
-                                    const SizedBox(height: 20),
-                                    
-                                    // Email
-                                    _buildProfileItem(
-                                      context,
-                                      icon: Icons.email,
-                                      label: 'Email',
-                                      value: _userProfile!['email'] ?? 
-                                             _authService.currentUser?.email ?? 
-                                             'Not set',
-                                    ),
-                                    const SizedBox(height: 20),
-                                    
-                                    // User Type
-                                    _buildProfileItem(
-                                      context,
-                                      icon: Icons.badge,
-                                      label: 'User Type',
-                                      value: 'Clinician',
-                                    ),
-                                  ],
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Clinician Information',
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
-                              ),
+                              ],
                             ),
                             const SizedBox(height: 24),
-                            
-                            // Chat Button
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const ChatScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.chat),
-                              label: const Text(
-                                'Open Chat',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                              ),
+
+                            // Name
+                            _buildProfileItem(
+                              context,
+                              icon: Icons.person,
+                              label: 'Name',
+                              value: _userProfile!['name'] ?? 'Not set',
                             ),
-                            const SizedBox(height: 16),
-                            
-                            // Sign Out Button
-                            OutlinedButton(
-                              onPressed: _handleSignOut,
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: const Text(
-                                'Sign Out',
-                                style: TextStyle(fontSize: 16),
-                              ),
+                            const SizedBox(height: 20),
+
+                            // Age
+                            _buildProfileItem(
+                              context,
+                              icon: Icons.calendar_today,
+                              label: 'Age',
+                              value:
+                                  _userProfile!['age']?.toString() ?? 'Not set',
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Email
+                            _buildProfileItem(
+                              context,
+                              icon: Icons.email,
+                              label: 'Email',
+                              value:
+                                  _userProfile!['email'] ??
+                                  _authService.currentUser?.email ??
+                                  'Not set',
+                            ),
+                            const SizedBox(height: 20),
+
+                            // User Type
+                            _buildProfileItem(
+                              context,
+                              icon: Icons.badge,
+                              label: 'User Type',
+                              value: 'Clinician',
                             ),
                           ],
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Chat Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ChatScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.chat),
+                      label: const Text(
+                        'Open Chat',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Sign Out Button
+                    OutlinedButton(
+                      onPressed: _handleSignOut,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Sign Out',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       ),
     );
   }
@@ -284,11 +271,7 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: Colors.blue,
-          size: 24,
-        ),
+        Icon(icon, color: Colors.blue, size: 24),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -317,4 +300,3 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
     );
   }
 }
-

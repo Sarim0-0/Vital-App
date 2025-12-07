@@ -8,11 +8,8 @@ import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final UserType userType;
-  
-  const LoginScreen({
-    super.key,
-    required this.userType,
-  });
+
+  const LoginScreen({super.key, required this.userType});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -24,7 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   final _usernameController = TextEditingController(); // For admin
   final _authService = AuthService();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -54,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (widget.userType == UserType.admin) {
         final username = _usernameController.text.trim();
         final password = _passwordController.text.trim();
-        
+
         if (username == _adminUsername && password == _adminPassword) {
           if (mounted) {
             Navigator.of(context).pushReplacement(
@@ -68,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
           throw 'Invalid username or password';
         }
       }
-      
+
       // Handle clinician and patient login with Firebase
       final userCredential = await _authService.signIn(
         email: _emailController.text.trim(),
@@ -78,14 +75,19 @@ class _LoginScreenState extends State<LoginScreen> {
       if (userCredential?.user != null && mounted) {
         // Get user profile from the appropriate collection
         final user = userCredential!.user!;
-        final expectedType = widget.userType == UserType.clinician ? 'clinician' : 'patient';
-        final profile = await _authService.getUserProfile(user.uid, expectedType);
-        
+        final expectedType = widget.userType == UserType.clinician
+            ? 'clinician'
+            : 'patient';
+        final profile = await _authService.getUserProfile(
+          user.uid,
+          expectedType,
+        );
+
         // Verify profile exists (if not, user might be in wrong collection)
         if (profile == null) {
           throw 'No ${expectedType} account found with this email. Please check your user type selection.';
         }
-        
+
         // Navigate to appropriate profile screen
         if (widget.userType == UserType.clinician) {
           Navigator.of(context).pushReplacement(
@@ -149,20 +151,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Welcome Back',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign in to continue',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-                
+
                 // Username field (only for admin)
                 if (widget.userType == UserType.admin) ...[
                   TextFormField(
@@ -183,7 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Email field (for clinician and patient)
                 if (widget.userType != UserType.admin) ...[
                   TextFormField(
@@ -211,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-                
+
                 // Password field
                 TextFormField(
                   controller: _passwordController,
@@ -221,7 +223,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        _obscurePassword
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                       onPressed: () {
                         setState(() {
@@ -240,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-                
+
                 // Login button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _handleLogin,
@@ -256,29 +260,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
-                      : const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16),
-                        ),
+                      : const Text('Login', style: TextStyle(fontSize: 16)),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Sign Up link (only for clinician and patient)
                 if (widget.userType != UserType.admin)
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => SignUpScreen(userType: widget.userType),
+                          builder: (context) =>
+                              SignUpScreen(userType: widget.userType),
                         ),
                       );
                     },
                     child: const Text('Don\'t have an account? Sign Up'),
                   ),
-                
+
                 // Back to user type selection
                 TextButton(
                   onPressed: () {
