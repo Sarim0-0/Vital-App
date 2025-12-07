@@ -17,8 +17,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
           channel: 'stable'
+          # Using latest stable to ensure Dart 3.9.2+ support
       
       - name: Get dependencies
         working-directory: ./vital_app
