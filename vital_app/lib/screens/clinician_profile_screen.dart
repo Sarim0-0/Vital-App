@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'chat_screen.dart';
 import 'user_type_selection_screen.dart';
+import 'prescription_requests_screen.dart';
 
 class ClinicianProfileScreen extends StatefulWidget {
   const ClinicianProfileScreen({super.key});
@@ -228,6 +229,32 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
                       icon: const Icon(Icons.chat),
                       label: const Text(
                         'Open Chat',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // View Requests Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const PrescriptionRequestsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.assignment),
+                      label: const Text(
+                        'View Prescription Requests',
                         style: TextStyle(fontSize: 16),
                       ),
                       style: ElevatedButton.styleFrom(

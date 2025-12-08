@@ -73,6 +73,33 @@ service cloud.firestore {
     }
     
     // ============================================
+    // PRESCRIPTION REQUESTS COLLECTION
+    // ============================================
+    match /prescription_requests/{requestId} {
+      // Patients can create requests
+      allow create: if isAuthenticated() && 
+                       isPatient() &&
+                       request.resource.data.patientId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['patientId', 'patientName', 'patientEmail', 'clinicianId', 'clinicianName', 'status', 'createdAt', 'updatedAt']);
+      
+      // Patients can read their own requests
+      // Clinicians can read requests made to them
+      allow read: if isAuthenticated() && 
+                    (resource.data.patientId == request.auth.uid ||
+                     resource.data.clinicianId == request.auth.uid);
+      
+      // Only clinicians can update requests (to approve/reject)
+      allow update: if isAuthenticated() && 
+                      isClinician() &&
+                      resource.data.clinicianId == request.auth.uid &&
+                      request.resource.data.diff(resource.data).unchangedKeys().hasAll(['patientId', 'patientName', 'patientEmail', 'clinicianId', 'clinicianName', 'createdAt']) &&
+                      request.resource.data.status in ['pending', 'approved', 'rejected'];
+      
+      // No deletes allowed (for audit trail)
+      allow delete: if false;
+    }
+    
+    // ============================================
     // OLD USERS COLLECTION (if you still have data there)
     // ============================================
     match /users/{userId} {
