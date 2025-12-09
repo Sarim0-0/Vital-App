@@ -6,6 +6,8 @@ import 'user_type_selection_screen.dart';
 import 'search_clinicians_screen.dart';
 import 'complete_profile_screen.dart';
 import 'health_metrics_screen.dart';
+import 'food_tracking_screen.dart';
+import 'exercise_tracking_screen.dart';
 
 class PatientProfileScreen extends StatefulWidget {
   const PatientProfileScreen({super.key});
@@ -380,6 +382,56 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Food Tracking Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const FoodTrackingScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.restaurant),
+                      label: const Text(
+                        'Food Tracking',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Exercise Tracking Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ExerciseTrackingScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.fitness_center),
+                      label: const Text(
+                        'Exercise Tracking',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
                       ),
                     ),

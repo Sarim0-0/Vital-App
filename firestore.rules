@@ -79,6 +79,24 @@ service cloud.firestore {
         allow create, update: if isAuthenticated() && isOwner(patientId);
         allow delete: if isAuthenticated() && isOwner(patientId);
       }
+      
+      // Food Data Subcollection
+      match /food_data/{dateKey} {
+        // Patients can read and write their own food data
+        // Clinicians can read patient food data (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        allow create, update: if isAuthenticated() && isOwner(patientId);
+        allow delete: if isAuthenticated() && isOwner(patientId);
+      }
+      
+      // Exercise Data Subcollection
+      match /exercise_data/{dateKey} {
+        // Patients can read and write their own exercise data
+        // Clinicians can read patient exercise data (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        allow create, update: if isAuthenticated() && isOwner(patientId);
+        allow delete: if isAuthenticated() && isOwner(patientId);
+      }
     }
     
     // ============================================

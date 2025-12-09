@@ -143,12 +143,24 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
       // Then, try to get data from Firestore
       final firestoreData = await _healthDataService.getTodayHealthData();
       
-      // Merge data: prefer Health Connect data, fallback to Firestore
+      // Merge data: prefer Firestore (app's stored data) when Health Connect returns 0 or null
       setState(() {
-        _steps = healthData['steps'] ?? firestoreData?['steps'];
-        _caloriesBurned = healthData['caloriesBurned'] ?? firestoreData?['caloriesBurned'];
-        _hoursSlept = healthData['hoursSlept'] ?? firestoreData?['hoursSlept'];
-        _heartRate = healthData['heartRate'] ?? firestoreData?['heartRate'];
+        final hcSteps = healthData['steps'];
+        final fsSteps = firestoreData?['steps'];
+        // Use Health Connect if it has a value > 0, otherwise use Firestore, otherwise use Health Connect (even if 0)
+        _steps = (hcSteps != null && hcSteps > 0) ? hcSteps : (fsSteps ?? hcSteps);
+        
+        final hcCalories = healthData['caloriesBurned'];
+        final fsCalories = firestoreData?['caloriesBurned'];
+        _caloriesBurned = (hcCalories != null && hcCalories > 0) ? hcCalories : (fsCalories ?? hcCalories);
+        
+        final hcSleep = healthData['hoursSlept'];
+        final fsSleep = firestoreData?['hoursSlept'];
+        _hoursSlept = (hcSleep != null && hcSleep > 0) ? hcSleep : (fsSleep ?? hcSleep);
+        
+        final hcHeartRate = healthData['heartRate'];
+        final fsHeartRate = firestoreData?['heartRate'];
+        _heartRate = (hcHeartRate != null && hcHeartRate > 0) ? hcHeartRate : (fsHeartRate ?? hcHeartRate);
         
         // Update text controllers for manual entry
         _stepsController.text = _steps?.toString() ?? '';
