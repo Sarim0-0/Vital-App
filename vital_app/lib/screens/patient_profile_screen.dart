@@ -9,6 +9,9 @@ import 'health_metrics_screen.dart';
 import 'food_tracking_screen.dart';
 import 'exercise_tracking_screen.dart';
 import 'medical_documents_screen.dart';
+import 'medication_checklist_screen.dart';
+import 'appointments_calendar_screen.dart';
+import 'prescription_approval_screen.dart';
 
 class PatientProfileScreen extends StatefulWidget {
   const PatientProfileScreen({super.key});
@@ -484,6 +487,82 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Approve Prescriptions Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const PrescriptionApprovalScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.approval),
+                      label: const Text(
+                        'Approve Prescriptions',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Medication Checklist Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const MedicationChecklistScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.checklist),
+                      label: const Text(
+                        'Medication Checklist',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Appointments Calendar Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AppointmentsCalendarScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.calendar_today),
+                      label: const Text(
+                        'Appointments Calendar',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.purple,
                         foregroundColor: Colors.white,
                       ),
                     ),

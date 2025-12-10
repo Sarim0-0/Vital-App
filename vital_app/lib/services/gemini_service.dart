@@ -2,17 +2,28 @@ import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class GeminiService {
-  final Gemini _gemini = Gemini.instance;
+  // Ensure Gemini is initialized before use
+  void _ensureInitialized() {
+    final apiKey = dotenv.env['API_KEY'];
+    if (apiKey == null ||
+        apiKey.isEmpty ||
+        apiKey == 'your_gemini_api_key_here') {
+      throw 'API key not configured. Please set your API_KEY in the .env file.';
+    }
+
+    // Always re-initialize to ensure it's set (safe to call multiple times)
+    try {
+      Gemini.init(apiKey: apiKey);
+    } catch (e) {
+      // If initialization fails, throw a clear error
+      throw 'Failed to initialize Gemini API. Please check your API_KEY in the .env file.';
+    }
+  }
 
   Future<String> sendMessage(String message) async {
     try {
-      // Check if API key is configured
-      final apiKey = dotenv.env['API_KEY'];
-      if (apiKey == null ||
-          apiKey.isEmpty ||
-          apiKey == 'your_gemini_api_key_here') {
-        throw 'API key not configured. Please set your API_KEY in the .env file.';
-      }
+      // Ensure Gemini is initialized before each request
+      _ensureInitialized();
 
       // Validate message is not empty
       if (message.trim().isEmpty) {
@@ -21,7 +32,7 @@ class GeminiService {
 
       // Use the prompt method according to documentation
       // Documentation shows: Gemini.instance.prompt(parts: [Part.text('...')])
-      final response = await _gemini.prompt(parts: [Part.text(message.trim())]);
+      final response = await Gemini.instance.prompt(parts: [Part.text(message.trim())]);
 
       // According to documentation, access response via value?.output
       if (response?.output != null) {

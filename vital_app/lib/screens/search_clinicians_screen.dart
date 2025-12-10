@@ -102,45 +102,121 @@ class _SearchCliniciansScreenState extends State<SearchCliniciansScreen> {
 
     if (!mounted) return;
 
-    // Show dialog for optional message
+    // Show dialog for info type selection and optional message
+    String selectedInfoType = 'basic';
     final messageController = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Request Prescription from ${clinician['name']}'),
-        content: TextField(
-          controller: messageController,
-          decoration: const InputDecoration(
-            labelText: 'Message (optional)',
-            hintText: 'Add any additional information...',
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Request Prescription from ${clinician['name']}'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Select information to share:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                // ignore: deprecated_member_use
+                RadioListTile<String>(
+                  title: const Text('Basic Info'),
+                  subtitle: const Text('Name, age, email only'),
+                  value: 'basic',
+                  // ignore: deprecated_member_use
+                  groupValue: selectedInfoType,
+                  // ignore: deprecated_member_use
+                  onChanged: (value) {
+                    setDialogState(() {
+                      selectedInfoType = value!;
+                    });
+                  },
+                ),
+                // ignore: deprecated_member_use
+                RadioListTile<String>(
+                  title: const Text('Extensive Info'),
+                  subtitle: const Text('Includes conditions, allergies, medications'),
+                  value: 'extensive',
+                  // ignore: deprecated_member_use
+                  groupValue: selectedInfoType,
+                  // ignore: deprecated_member_use
+                  onChanged: (value) {
+                    setDialogState(() {
+                      selectedInfoType = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: messageController,
+                  decoration: const InputDecoration(
+                    labelText: 'Message (optional)',
+                    hintText: 'Add any additional information...',
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
           ),
-          maxLines: 3,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop({
+                'confirmed': true,
+                'infoType': selectedInfoType,
+                'message': messageController.text.trim(),
+              }),
+              child: const Text('Send Request'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Send Request'),
-          ),
-        ],
       ),
     );
 
-    if (confirmed != true || !mounted) return;
+    if (confirmed == null || confirmed['confirmed'] != true || !mounted) return;
 
     try {
+      // Get extensive info if selected
+      List<String>? chronicConditions;
+      List<String>? allergies;
+      List<String>? medications;
+
+      if (confirmed['infoType'] == 'extensive') {
+        if (patientProfile['chronicConditions'] != null) {
+          if (patientProfile['chronicConditions'] is List) {
+            chronicConditions = List<String>.from(patientProfile['chronicConditions']);
+          }
+        }
+        if (patientProfile['allergies'] != null) {
+          if (patientProfile['allergies'] is List) {
+            allergies = List<String>.from(patientProfile['allergies']);
+          }
+        }
+        if (patientProfile['medications'] != null) {
+          if (patientProfile['medications'] is List) {
+            medications = List<String>.from(patientProfile['medications']);
+          }
+        }
+      }
+
       await _prescriptionService.createRequest(
         patientId: user.uid,
         patientName: patientProfile['name'] ?? 'Unknown',
         patientEmail: patientProfile['email'] ?? user.email ?? '',
         clinicianId: clinician['id'],
         clinicianName: clinician['name'],
-        message: messageController.text.trim().isEmpty
+        message: confirmed['message'].toString().isEmpty
             ? null
-            : messageController.text.trim(),
+            : confirmed['message'].toString(),
+        infoType: confirmed['infoType'] as String,
+        chronicConditions: chronicConditions,
+        allergies: allergies,
+        medications: medications,
       );
 
       if (mounted) {

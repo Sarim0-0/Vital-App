@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/exercise_data_service.dart';
+import '../services/prescription_service.dart';
 
 class ExerciseTrackingScreen extends StatefulWidget {
   const ExerciseTrackingScreen({super.key});
@@ -11,11 +12,15 @@ class ExerciseTrackingScreen extends StatefulWidget {
 
 class _ExerciseTrackingScreenState extends State<ExerciseTrackingScreen> {
   final _exerciseDataService = ExerciseDataService();
+  final _prescriptionService = PrescriptionService();
   
   bool _isLoading = true;
   
   // Exercise data
   List<Map<String, dynamic>> _exercises = [];
+  
+  // Recommended exercises from prescriptions
+  List<String> _recommendedExercises = [];
   
   // Controllers for adding new exercise
   final _exerciseTypeController = TextEditingController();
@@ -28,6 +33,7 @@ class _ExerciseTrackingScreenState extends State<ExerciseTrackingScreen> {
   void initState() {
     super.initState();
     _loadExerciseData();
+    _loadRecommendedExercises();
   }
 
   @override
@@ -69,6 +75,35 @@ class _ExerciseTrackingScreenState extends State<ExerciseTrackingScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadRecommendedExercises() async {
+    final user = _prescriptionService.currentUser;
+    if (user == null) return;
+
+    try {
+      final snapshot = await _prescriptionService.getPrescriptionsForPatient(user.uid).first;
+      final Set<String> allRecommendedExercises = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final recommendedExercises = List<String>.from(data['recommendedExercises'] ?? []);
+        allRecommendedExercises.addAll(recommendedExercises);
+      }
+
+      if (mounted) {
+        setState(() {
+          _recommendedExercises = allRecommendedExercises.toList()..sort();
+        });
+      }
+    } catch (e) {
+      // Silently fail - recommended exercises are optional
+      if (mounted) {
+        setState(() {
+          _recommendedExercises = [];
+        });
+      }
     }
   }
 
@@ -335,12 +370,57 @@ class _ExerciseTrackingScreenState extends State<ExerciseTrackingScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadExerciseData,
+        onRefresh: () async {
+          await _loadExerciseData();
+          await _loadRecommendedExercises();
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Recommended Exercises Section
+              if (_recommendedExercises.isNotEmpty) ...[
+                Card(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Recommended Exercises',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _recommendedExercises.map((exercise) {
+                            return Chip(
+                              label: Text(exercise),
+                              backgroundColor: Colors.green.withValues(alpha: 0.2),
+                              avatar: const Icon(Icons.fitness_center, size: 18, color: Colors.green),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
               // Exercises List
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

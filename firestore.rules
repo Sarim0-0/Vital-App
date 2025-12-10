@@ -63,6 +63,17 @@ service cloud.firestore {
         // No updates or deletes allowed
         allow update, delete: if false;
       }
+      
+      // Clinician Prescriptions Subcollection (Log)
+      match /prescriptions/{prescriptionId} {
+        // Clinicians can read their own prescription log
+        allow read: if isAuthenticated() && isOwner(clinicianId);
+        // Clinicians can create prescriptions in their log
+        allow create: if isAuthenticated() && isOwner(clinicianId) &&
+                       request.resource.data.keys().hasAll(['requestId', 'patientId', 'patientName', 'patientEmail', 'clinicianId', 'clinicianName', 'recommendedFoods', 'recommendedExercises', 'medicines', 'appointments', 'createdAt']);
+        // No updates or deletes allowed (for audit trail)
+        allow update, delete: if false;
+      }
     }
     
     // ============================================
@@ -123,6 +134,82 @@ service cloud.firestore {
         allow create: if isAuthenticated() && isOwner(patientId);
         allow update: if isAuthenticated() && isOwner(patientId);
         allow delete: if isAuthenticated() && isOwner(patientId);
+      }
+      
+      // Patient Prescriptions Subcollection
+      match /prescriptions/{prescriptionId} {
+        // Patients can read their own prescriptions
+        // Clinicians can read patient prescriptions (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        // Clinicians can create prescriptions for patients
+        allow create: if isAuthenticated() && isClinician() &&
+                       request.resource.data.keys().hasAll(['requestId', 'patientId', 'patientName', 'patientEmail', 'clinicianId', 'clinicianName', 'recommendedFoods', 'recommendedExercises', 'medicines', 'appointments', 'createdAt']) &&
+                       request.resource.data.patientId == patientId;
+        // Patients can update their own prescriptions (for approval/rejection)
+        // Ensure core prescription data remains unchanged
+        allow update: if isAuthenticated() && isOwner(patientId) &&
+                       // Core prescription fields must remain unchanged
+                       request.resource.data.requestId == resource.data.requestId &&
+                       request.resource.data.patientId == resource.data.patientId &&
+                       request.resource.data.patientName == resource.data.patientName &&
+                       request.resource.data.patientEmail == resource.data.patientEmail &&
+                       request.resource.data.clinicianId == resource.data.clinicianId &&
+                       request.resource.data.clinicianName == resource.data.clinicianName &&
+                       request.resource.data.recommendedFoods == resource.data.recommendedFoods &&
+                       request.resource.data.recommendedExercises == resource.data.recommendedExercises &&
+                       request.resource.data.medicines == resource.data.medicines &&
+                       request.resource.data.appointments == resource.data.appointments &&
+                       request.resource.data.createdAt == resource.data.createdAt;
+        // No deletes allowed (for audit trail)
+        allow delete: if false;
+      }
+      
+      // Active Medications Subcollection (denormalized for faster access)
+      match /active_medications/{medicationId} {
+        // Patients can read their own active medications
+        // Clinicians can read patient active medications (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        // Only system can create/update (via prescription service)
+        // Patients can delete expired medications
+        allow create, update: if isAuthenticated() && isClinician();
+        allow delete: if isAuthenticated() && isOwner(patientId);
+      }
+      
+      // Medication Check-ins Subcollection
+      match /medication_checkins/{dateKey} {
+        // Patients can read and write their own medication check-ins
+        allow read, write: if isAuthenticated() && isOwner(patientId);
+        
+        // Check-ins subcollection
+        match /checkins/{checkInId} {
+          // Patients can read and write their own check-ins
+          allow read, write: if isAuthenticated() && isOwner(patientId);
+        }
+      }
+      
+      // Daily Tracking Subcollection (date-based medication and appointment tracking)
+      match /daily_tracking/{dateKey} {
+        // Patients can read and write their own daily tracking
+        // Clinicians can read patient daily tracking (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        // Patients can update medication status and appointment attendance
+        // System (via daily tracking service) can create/update when processing approved prescriptions
+        allow create, update: if isAuthenticated() && 
+                                (isOwner(patientId) || isClinician()) &&
+                                request.resource.data.keys().hasAll(['date', 'medications', 'appointments', 'prescriptionIds', 'updatedAt']);
+        // No deletes allowed (for audit trail)
+        allow delete: if false;
+      }
+      
+      // Appointment Attendance Subcollection (legacy - kept for backward compatibility)
+      match /appointment_attendance/{appointmentId} {
+        // Patients can read and write their own appointment attendance
+        // Clinicians can read patient appointment attendance (for medical records)
+        allow read: if isAuthenticated() && (isOwner(patientId) || isClinician());
+        allow create, update: if isAuthenticated() && isOwner(patientId) &&
+                                request.resource.data.keys().hasAll(['prescriptionId', 'appointmentId', 'appointmentDate', 'attended', 'checkedAt']);
+        // No deletes allowed (for audit trail)
+        allow delete: if false;
       }
     }
     

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/food_data_service.dart';
+import '../services/prescription_service.dart';
 
 class FoodTrackingScreen extends StatefulWidget {
   const FoodTrackingScreen({super.key});
@@ -10,12 +11,16 @@ class FoodTrackingScreen extends StatefulWidget {
 
 class _FoodTrackingScreenState extends State<FoodTrackingScreen> {
   final _foodDataService = FoodDataService();
+  final _prescriptionService = PrescriptionService();
   
   bool _isLoading = true;
   
   // Food data
   double _totalCalories = 0.0;
   List<Map<String, dynamic>> _foods = [];
+  
+  // Recommended foods from prescriptions
+  List<String> _recommendedFoods = [];
   
   // Controllers for adding new food
   final _foodNameController = TextEditingController();
@@ -30,6 +35,7 @@ class _FoodTrackingScreenState extends State<FoodTrackingScreen> {
   void initState() {
     super.initState();
     _loadFoodData();
+    _loadRecommendedFoods();
   }
 
   @override
@@ -74,6 +80,35 @@ class _FoodTrackingScreenState extends State<FoodTrackingScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadRecommendedFoods() async {
+    final user = _prescriptionService.currentUser;
+    if (user == null) return;
+
+    try {
+      final snapshot = await _prescriptionService.getPrescriptionsForPatient(user.uid).first;
+      final Set<String> allRecommendedFoods = {};
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final recommendedFoods = List<String>.from(data['recommendedFoods'] ?? []);
+        allRecommendedFoods.addAll(recommendedFoods);
+      }
+
+      if (mounted) {
+        setState(() {
+          _recommendedFoods = allRecommendedFoods.toList()..sort();
+        });
+      }
+    } catch (e) {
+      // Silently fail - recommended foods are optional
+      if (mounted) {
+        setState(() {
+          _recommendedFoods = [];
+        });
+      }
     }
   }
 
@@ -277,7 +312,10 @@ class _FoodTrackingScreenState extends State<FoodTrackingScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: _loadFoodData,
+        onRefresh: () async {
+          await _loadFoodData();
+          await _loadRecommendedFoods();
+        },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -326,6 +364,49 @@ class _FoodTrackingScreenState extends State<FoodTrackingScreen> {
                   ),
                 ),
               ),
+
+              // Recommended Foods Section
+              if (_recommendedFoods.isNotEmpty) ...[
+                Card(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.green),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Recommended Foods',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _recommendedFoods.map((food) {
+                            return Chip(
+                              label: Text(food),
+                              backgroundColor: Colors.green.withValues(alpha: 0.2),
+                              avatar: const Icon(Icons.restaurant, size: 18, color: Colors.green),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Foods List
               Padding(

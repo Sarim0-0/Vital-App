@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/prescription_service.dart';
+import 'generate_prescription_screen.dart';
 
 class PrescriptionRequestsScreen extends StatelessWidget {
   const PrescriptionRequestsScreen({super.key});
@@ -120,8 +121,13 @@ class PrescriptionRequestsScreen extends StatelessWidget {
               final data = request.data() as Map<String, dynamic>;
               final status = data['status'] as String? ?? 'pending';
               final patientName = data['patientName'] as String? ?? 'Unknown';
+              final patientEmail = data['patientEmail'] as String? ?? '';
               final message = data['message'] as String? ?? '';
               final createdAt = data['createdAt'] as Timestamp?;
+              final infoType = data['infoType'] as String? ?? 'basic';
+              final chronicConditions = data['chronicConditions'] as List<dynamic>?;
+              final allergies = data['allergies'] as List<dynamic>?;
+              final medications = data['medications'] as List<dynamic>?;
 
               Color statusColor;
               IconData statusIcon;
@@ -196,6 +202,46 @@ class PrescriptionRequestsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      // Patient Info Section
+                      const SizedBox(height: 12),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Patient Information',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text('Email: $patientEmail'),
+                      Text('Info Type: ${infoType.toUpperCase()}'),
+                      if (infoType == 'extensive') ...[
+                        const SizedBox(height: 8),
+                        if (chronicConditions != null && chronicConditions.isNotEmpty) ...[
+                          const Text(
+                            'Chronic Conditions:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          ...chronicConditions.map((condition) => Text('• $condition')),
+                          const SizedBox(height: 4),
+                        ],
+                        if (allergies != null && allergies.isNotEmpty) ...[
+                          const Text(
+                            'Allergies:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          ...allergies.map((allergy) => Text('• $allergy')),
+                          const SizedBox(height: 4),
+                        ],
+                        if (medications != null && medications.isNotEmpty) ...[
+                          const Text(
+                            'Current Medications:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          ...medications.map((med) => Text('• $med')),
+                        ],
+                      ],
                       if (message.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         const Divider(),
@@ -225,18 +271,32 @@ class PrescriptionRequestsScreen extends StatelessWidget {
                               child: const Text('Reject'),
                             ),
                             const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: () => _updateStatus(
-                                context,
-                                prescriptionService,
-                                request.id,
-                                'approved',
-                              ),
+                            ElevatedButton.icon(
+                              onPressed: () async {
+                                final result = await Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => GeneratePrescriptionScreen(
+                                      requestId: request.id,
+                                      requestData: data,
+                                    ),
+                                  ),
+                                );
+                                if (result == true && context.mounted) {
+                                  // Prescription was generated successfully
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Prescription generated successfully!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: const Icon(Icons.medical_services),
+                              label: const Text('Generate Prescription'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
                               ),
-                              child: const Text('Approve'),
                             ),
                           ],
                         ),

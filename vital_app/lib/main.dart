@@ -8,14 +8,37 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
-  // Initialize Gemini with API key from .env
-  final apiKey = dotenv.env['API_KEY'];
-  if (apiKey != null &&
-      apiKey.isNotEmpty &&
-      apiKey != 'your_gemini_api_key_here') {
-    Gemini.init(apiKey: apiKey);
+  try {
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
+
+    // Initialize Gemini with API key from .env
+    final apiKey = dotenv.env['API_KEY'];
+    if (apiKey != null &&
+        apiKey.isNotEmpty &&
+        apiKey != 'your_gemini_api_key_here') {
+      try {
+        Gemini.init(apiKey: apiKey);
+      } catch (e) {
+        // Log error but don't crash the app
+        debugPrint('Warning: Failed to initialize Gemini: $e');
+        debugPrint(
+          'Chat functionality may not work. Please check your API_KEY in .env file.',
+        );
+      }
+    } else {
+      debugPrint('Warning: API_KEY not found or invalid in .env file.');
+      debugPrint(
+        'Chat functionality will not work. Please set API_KEY=your_actual_api_key in .env file.',
+      );
+    }
+  } catch (e) {
+    // If .env file doesn't exist or can't be loaded, log warning
+    debugPrint('Warning: Could not load .env file: $e');
+    debugPrint(
+      'Chat functionality will not work. Please create a .env file with API_KEY=your_actual_api_key',
+    );
   }
 
   await Firebase.initializeApp();

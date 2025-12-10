@@ -64,18 +64,38 @@ class PrescriptionService {
     required String clinicianId,
     required String clinicianName,
     String? message,
+    String infoType = 'basic', // 'basic' or 'extensive'
+    List<String>? chronicConditions,
+    List<String>? allergies,
+    List<String>? medications,
   }) async {
-    await _firestore.collection('prescription_requests').add({
+    final requestData = <String, dynamic>{
       'patientId': patientId,
       'patientName': patientName,
       'patientEmail': patientEmail,
       'clinicianId': clinicianId,
       'clinicianName': clinicianName,
       'message': message ?? '',
+      'infoType': infoType,
       'status': 'pending',
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+
+    // Add extensive info if provided
+    if (infoType == 'extensive') {
+      if (chronicConditions != null && chronicConditions.isNotEmpty) {
+        requestData['chronicConditions'] = chronicConditions;
+      }
+      if (allergies != null && allergies.isNotEmpty) {
+        requestData['allergies'] = allergies;
+      }
+      if (medications != null && medications.isNotEmpty) {
+        requestData['medications'] = medications;
+      }
+    }
+
+    await _firestore.collection('prescription_requests').add(requestData);
   }
 
   // Get all requests for a clinician
@@ -105,6 +125,107 @@ class PrescriptionService {
     await _firestore.collection('prescription_requests').doc(requestId).update({
       'status': status,
       'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Create a prescription
+  Future<void> createPrescription({
+    required String requestId,
+    required String patientId,
+    required String patientName,
+    required String patientEmail,
+    required String clinicianId,
+    required String clinicianName,
+    required List<String> recommendedFoods,
+    required List<String> recommendedExercises,
+    required List<Map<String, dynamic>> medicines,
+    required List<Map<String, dynamic>> appointments,
+  }) async {
+    final prescriptionData = <String, dynamic>{
+      'requestId': requestId,
+      'patientId': patientId,
+      'patientName': patientName,
+      'patientEmail': patientEmail,
+      'clinicianId': clinicianId,
+      'clinicianName': clinicianName,
+      'recommendedFoods': recommendedFoods,
+      'recommendedExercises': recommendedExercises,
+      'medicines': medicines,
+      'appointments': appointments,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
+
+    // Store prescription in clinician's log
+    await _firestore
+        .collection('clinicians')
+        .doc(clinicianId)
+        .collection('prescriptions')
+        .add(prescriptionData);
+
+    // Store prescription for patient (marked as pending approval)
+    final patientPrescriptionData = Map<String, dynamic>.from(prescriptionData);
+    patientPrescriptionData['approved'] = false; // Patient needs to approve
+    patientPrescriptionData['rejected'] = false;
+    
+    await _firestore
+        .collection('patients')
+        .doc(patientId)
+        .collection('prescriptions')
+        .add(patientPrescriptionData);
+
+    // Update request status to approved
+    await updateRequestStatus(requestId: requestId, status: 'approved');
+  }
+
+  // Get prescriptions for a clinician (log view)
+  Stream<QuerySnapshot> getPrescriptionsForClinician(String clinicianId) {
+    return _firestore
+        .collection('clinicians')
+        .doc(clinicianId)
+        .collection('prescriptions')
+        .snapshots();
+  }
+
+  // Get prescriptions for a patient
+  Stream<QuerySnapshot> getPrescriptionsForPatient(String patientId) {
+    return _firestore
+        .collection('patients')
+        .doc(patientId)
+        .collection('prescriptions')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  // Approve prescription (patient action)
+  Future<void> approvePrescription(String prescriptionId) async {
+    final user = _auth.currentUser;
+    if (user == null) throw 'No user logged in';
+
+    await _firestore
+        .collection('patients')
+        .doc(user.uid)
+        .collection('prescriptions')
+        .doc(prescriptionId)
+        .update({
+      'approved': true,
+      'approvedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Reject prescription (patient action)
+  Future<void> rejectPrescription(String prescriptionId) async {
+    final user = _auth.currentUser;
+    if (user == null) throw 'No user logged in';
+
+    await _firestore
+        .collection('patients')
+        .doc(user.uid)
+        .collection('prescriptions')
+        .doc(prescriptionId)
+        .update({
+      'approved': false,
+      'rejected': true,
+      'rejectedAt': FieldValue.serverTimestamp(),
     });
   }
 

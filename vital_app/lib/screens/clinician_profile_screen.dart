@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import 'chat_screen.dart';
 import 'user_type_selection_screen.dart';
 import 'prescription_requests_screen.dart';
+import 'prescription_history_screen.dart';
 
 class ClinicianProfileScreen extends StatefulWidget {
   const ClinicianProfileScreen({super.key});
@@ -295,6 +296,34 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    if (_userProfile!['verified'] == true)
+                      const SizedBox(height: 16),
+
+                    // Prescription History Button (only if verified)
+                    if (_userProfile!['verified'] == true)
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const PrescriptionHistoryScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.history),
+                        label: const Text(
+                          'Prescription History',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          backgroundColor: Colors.green,
                           foregroundColor: Colors.white,
                         ),
                       ),
