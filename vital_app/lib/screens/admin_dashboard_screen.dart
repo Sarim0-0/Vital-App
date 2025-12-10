@@ -82,67 +82,9 @@ class AdminDashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Statistics Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      title: 'Total Users',
-                      value: '0',
-                      icon: Icons.people,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      title: 'Clinicians',
-                      value: '0',
-                      icon: Icons.local_hospital,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      title: 'Patients',
-                      value: '0',
-                      icon: Icons.person,
-                      color: Colors.green,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard(
-                      context,
-                      title: 'Active Sessions',
-                      value: '0',
-                      icon: Icons.online_prediction,
-                      color: Colors.orange,
-                    ),
-                  ),
-                ],
-              ),
               const SizedBox(height: 32),
 
-              // Quick Actions
-              Text(
-                'Quick Actions',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-
+              // Verify Clinicians Action Card
               _buildActionCard(
                 context,
                 title: 'Verify Clinicians',
@@ -152,51 +94,6 @@ class AdminDashboardScreen extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const AdminVerificationScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              _buildActionCard(
-                context,
-                title: 'Manage Users',
-                description: 'View and manage user accounts',
-                icon: Icons.manage_accounts,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('User management feature coming soon'),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              _buildActionCard(
-                context,
-                title: 'System Settings',
-                description: 'Configure system preferences',
-                icon: Icons.settings,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Settings feature coming soon'),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              _buildActionCard(
-                context,
-                title: 'View Reports',
-                description: 'Access system reports and analytics',
-                icon: Icons.assessment,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Reports feature coming soon'),
                     ),
                   );
                 },
@@ -216,42 +113,6 @@ class AdminDashboardScreen extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    BuildContext context, {
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 12),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-            ),
-          ],
         ),
       ),
     );

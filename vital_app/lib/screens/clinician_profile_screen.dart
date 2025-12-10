@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'chat_screen.dart';
 import 'user_type_selection_screen.dart';
 import 'prescription_requests_screen.dart';
 import 'prescription_history_screen.dart';
@@ -17,6 +16,11 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
   Map<String, dynamic>? _userProfile;
   bool _isLoading = true;
   String? _errorMessage;
+
+  // Standard color theme for clinician screens
+  static const Color _primaryColor = Color(0xFF1976D2); // Blue
+  static const Color _accentColor = Color(0xFF42A5F5); // Light Blue
+  static const Color _successColor = Color(0xFF4CAF50); // Green
 
   @override
   void initState() {
@@ -75,9 +79,12 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text('Clinician Profile'),
-        backgroundColor: Colors.blue,
+        backgroundColor: _primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -90,96 +97,208 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _errorMessage != null
-            ? Center(
+                ? _buildErrorState()
+                : _userProfile == null
+                    ? _buildEmptyState()
+                    : _buildProfileContent(),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              style: TextStyle(color: Colors.red[700], fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadUserProfile,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No profile data found',
+            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    final isVerified = _userProfile!['verified'] == true;
+    
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Header Section with Gradient
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  _primaryColor,
+                  _accentColor,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                    const SizedBox(height: 20),
+                    // Profile Avatar with Stack
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.white,
+                          child: CircleAvatar(
+                            radius: 46,
+                            backgroundColor: _primaryColor,
+                            child: Text(
+                              (_userProfile!['name']?[0] ?? 'C').toUpperCase(),
+                              style: const TextStyle(
+                                fontSize: 40,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (isVerified)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: _successColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.verified,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 16),
                     Text(
-                      _errorMessage!,
-                      style: TextStyle(color: Colors.red[700], fontSize: 16),
-                      textAlign: TextAlign.center,
+                      _userProfile!['name'] ?? 'Clinician',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _loadUserProfile,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              )
-            : _userProfile == null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.person_off, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 4),
                     Text(
-                      'No profile data found',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      _userProfile!['email'] ?? _authService.currentUser?.email ?? '',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
                     ),
+                    if (!isVerified) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.warning,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Account Pending Verification',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              )
-            : SingleChildScrollView(
+              ),
+            ),
+          ),
+
+          // Content Section
+          Transform.translate(
+            offset: const Offset(0, -20),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Verification Warning
-                    if (_userProfile!['verified'] != true)
-                      Card(
-                        color: Colors.orange,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.warning,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                              const SizedBox(width: 16),
-                              const Expanded(
-                                child: Text(
-                                  'Your account is currently unverified. Please wait for admin verification.',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const SizedBox(height: 20),
-                    // Profile Icon
-                    Center(
-                      child: CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.blue,
-                        child: Text(
-                          _userProfile!['name']?[0].toUpperCase() ?? 'C',
-                          style: const TextStyle(
-                            fontSize: 48,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Profile Card
+                    // Profile Information Card
                     Card(
-                      elevation: 4,
+                      elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
@@ -188,96 +307,69 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(
-                                  Icons.local_hospital,
-                                  color: Colors.blue,
-                                  size: 24,
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: _primaryColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.local_hospital,
+                                    color: _primaryColor,
+                                    size: 24,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Clinician Information',
-                                  style: Theme.of(context).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'Profile Information',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 24),
-
-                            // Name
-                            _buildProfileItem(
-                              context,
+                            const SizedBox(height: 20),
+                            _buildInfoRow(
                               icon: Icons.person,
                               label: 'Name',
                               value: _userProfile!['name'] ?? 'Not set',
                             ),
-                            const SizedBox(height: 20),
-
-                            // Age
-                            _buildProfileItem(
-                              context,
+                            const Divider(height: 32),
+                            _buildInfoRow(
                               icon: Icons.calendar_today,
                               label: 'Age',
-                              value:
-                                  _userProfile!['age']?.toString() ?? 'Not set',
+                              value: _userProfile!['age']?.toString() ?? 'Not set',
                             ),
-                            const SizedBox(height: 20),
-
-                            // Email
-                            _buildProfileItem(
-                              context,
+                            const Divider(height: 32),
+                            _buildInfoRow(
                               icon: Icons.email,
                               label: 'Email',
-                              value:
-                                  _userProfile!['email'] ??
+                              value: _userProfile!['email'] ??
                                   _authService.currentUser?.email ??
                                   'Not set',
                             ),
-                            const SizedBox(height: 20),
-
-                            // User Type
-                            _buildProfileItem(
-                              context,
+                            const Divider(height: 32),
+                            _buildInfoRow(
                               icon: Icons.badge,
-                              label: 'User Type',
+                              label: 'Role',
                               value: 'Clinician',
+                              valueColor: _primaryColor,
                             ),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // Chat Button (only if verified)
-                    if (_userProfile!['verified'] == true)
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const ChatScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.chat),
-                        label: const Text(
-                          'Open Chat',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
-                      ),
-                    if (_userProfile!['verified'] == true)
-                      const SizedBox(height: 16),
-
-                    // View Requests Button (only if verified)
-                    if (_userProfile!['verified'] == true)
-                      ElevatedButton.icon(
-                        onPressed: () {
+                    // Action Buttons (only if verified)
+                    if (isVerified) ...[
+                      _buildActionButton(
+                        icon: Icons.assignment,
+                        label: 'View Prescription Requests',
+                        description: 'Review and respond to patient requests',
+                        color: _primaryColor,
+                        onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
@@ -285,27 +377,14 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.assignment),
-                        label: const Text(
-                          'View Prescription Requests',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
                       ),
-                    if (_userProfile!['verified'] == true)
-                      const SizedBox(height: 16),
-
-                    // Prescription History Button (only if verified)
-                    if (_userProfile!['verified'] == true)
-                      ElevatedButton.icon(
-                        onPressed: () {
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        icon: Icons.history,
+                        label: 'Prescription History',
+                        description: 'View all your past prescriptions',
+                        color: _successColor,
+                        onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) =>
@@ -313,55 +392,45 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.history),
-                        label: const Text(
-                          'Prescription History',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                        ),
                       ),
-                    if (_userProfile!['verified'] == true)
-                      const SizedBox(height: 16),
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 20),
+                    ],
 
                     // Sign Out Button
-                    OutlinedButton(
+                    OutlinedButton.icon(
                       onPressed: _handleSignOut,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
+                      icon: const Icon(Icons.logout),
+                      label: const Text(
                         'Sign Out',
                         style: TextStyle(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileItem(
-    BuildContext context, {
+  Widget _buildInfoRow({
     required IconData icon,
     required String label,
     required String value,
+    Color? valueColor,
   }) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: Colors.blue, size: 24),
+        Icon(icon, color: _primaryColor, size: 22),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -378,15 +447,90 @@ class _ClinicianProfileScreenState extends State<ClinicianProfileScreen> {
               const SizedBox(height: 4),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: valueColor ?? Colors.black87,
                 ),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required String description,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withValues(alpha: 0.1),
+                color.withValues(alpha: 0.05),
+              ],
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: color.withValues(alpha: 0.5),
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
