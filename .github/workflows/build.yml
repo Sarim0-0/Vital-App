@@ -14,100 +14,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # Using latest stable to ensure Dart 3.9.2+ support
-      
-      - name: Debug - Print environment info
-        run: |
-          echo "=== Environment Information ==="
-          echo "Flutter version:"
-          flutter --version
-          echo ""
-          echo "Dart version:"
-          dart --version
-          echo ""
-          echo "Working directory:"
-          pwd
-          echo ""
-          echo "Directory structure:"
-          ls -la
-          echo ""
-          echo "Vital app directory:"
-          ls -la vital_app/ || echo "vital_app directory not found"
-      
-      - name: Debug - Check pubspec.yaml
-        working-directory: ./vital_app
-        run: |
-          echo "=== pubspec.yaml content ==="
-          cat pubspec.yaml
-          echo ""
-          echo "=== SDK requirement ==="
-          grep -A 2 "sdk:" pubspec.yaml || echo "SDK requirement not found"
+          cache: true
       
       - name: Get dependencies
         working-directory: ./vital_app
-        run: |
-          echo "=== Running flutter pub get ==="
-          flutter pub get --verbose
-          echo ""
-          echo "=== Dependencies resolved ==="
-          flutter pub deps
+        run: flutter pub get
       
       - name: Verify formatting
         working-directory: ./vital_app
-        run: |
-          echo "=== Checking code formatting ==="
-          dart format --set-exit-if-changed . || {
-            echo "Formatting check failed. Files that need formatting:"
-            dart format . --output=none 2>&1 | head -20 || true
-            exit 1
-          }
-          echo "Formatting check passed"
+        run: dart format --set-exit-if-changed .
       
       - name: Analyze code
         working-directory: ./vital_app
-        run: |
-          echo "=== Running Flutter analyze ==="
-          flutter analyze --verbose || {
-            echo "Analysis failed. Full output:"
-            flutter analyze
-            exit 1
-          }
-          echo "Analysis passed"
+        run: flutter analyze
       
       - name: Build Android APK
         working-directory: ./vital_app
-        run: |
-          echo "=== Building Android APK (debug) ==="
-          flutter build apk --debug --verbose || {
-            echo "APK build failed. Checking for common issues:"
-            echo "Android SDK location:"
-            echo $ANDROID_HOME || echo "ANDROID_HOME not set"
-            echo ""
-            echo "Java version:"
-            java -version || echo "Java not found"
-            exit 1
-          }
-          echo "APK build successful"
-          echo ""
-          echo "=== APK file location ==="
-          find build/app/outputs/flutter-apk -name "*.apk" -type f || echo "APK file not found"
+        run: flutter build apk --debug
       
       - name: Build Android App Bundle
         working-directory: ./vital_app
-        run: |
-          echo "=== Building Android App Bundle (release) ==="
-          flutter build appbundle --release --verbose || {
-            echo "AAB build failed. This is non-critical, continuing..."
-            exit 0
-          }
-          echo "AAB build successful"
-          echo ""
-          echo "=== AAB file location ==="
-          find build/app/outputs/bundle -name "*.aab" -type f || echo "AAB file not found"
+        run: flutter build appbundle --release
         continue-on-error: true
       
       - name: Upload build artifacts

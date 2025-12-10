@@ -18,90 +18,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          # Using latest stable to ensure Dart 3.9.2+ support
-      
-      - name: Debug - Print environment info
-        run: |
-          echo "=== Environment Information ==="
-          echo "Flutter version:"
-          flutter --version
-          echo ""
-          echo "Dart version:"
-          dart --version
-          echo ""
-          echo "Working directory:"
-          pwd
-          echo ""
-          echo "Directory structure:"
-          ls -la
-          echo ""
-          echo "Vital app directory:"
-          ls -la vital_app/ || echo "vital_app directory not found"
-      
-      - name: Debug - Check pubspec.yaml
-        working-directory: ./vital_app
-        run: |
-          echo "=== pubspec.yaml content ==="
-          cat pubspec.yaml
-          echo ""
-          echo "=== SDK requirement ==="
-          grep -A 2 "sdk:" pubspec.yaml || echo "SDK requirement not found"
-          echo ""
-          echo "=== Test files ==="
-          find test -name "*.dart" -type f 2>/dev/null || echo "No test files found"
+          cache: true
       
       - name: Get dependencies
         working-directory: ./vital_app
-        run: |
-          echo "=== Running flutter pub get ==="
-          flutter pub get --verbose
-          echo ""
-          echo "=== Dependencies resolved ==="
-          flutter pub deps
+        run: flutter pub get
       
-      - name: Run Flutter analyze
+      - name: Analyze code
         working-directory: ./vital_app
-        run: |
-          echo "=== Running Flutter analyze ==="
-          flutter analyze --verbose || {
-            echo "Analysis failed. Full output:"
-            flutter analyze
-            exit 1
-          }
-          echo "Analysis passed"
+        run: flutter analyze
       
       - name: Run tests
         working-directory: ./vital_app
-        run: |
-          echo "=== Running Flutter tests ==="
-          echo "Test directory contents:"
-          ls -la test/ 2>/dev/null || echo "Test directory not found or empty"
-          echo ""
-          flutter test --coverage --verbose || {
-            echo "Tests failed. Full output:"
-            flutter test --coverage
-            echo ""
-            echo "=== Test summary ==="
-            exit 1
-          }
-          echo "All tests passed"
-      
-      - name: Generate coverage report
-        working-directory: ./vital_app
-        run: |
-          echo "=== Coverage Report Generation ==="
-          if [ -f coverage/lcov.info ]; then
-            echo "Coverage report found at: coverage/lcov.info"
-            echo "Coverage file size:"
-            ls -lh coverage/lcov.info
-            echo ""
-            echo "Coverage summary (first 50 lines):"
-            head -50 coverage/lcov.info || echo "Could not read coverage file"
-          else
-            echo "No coverage data found"
-            echo "Checking coverage directory:"
-            ls -la coverage/ 2>/dev/null || echo "Coverage directory does not exist"
-          fi
+        run: flutter test --coverage
       
       - name: Upload coverage to artifacts
         uses: actions/upload-artifact@v4
