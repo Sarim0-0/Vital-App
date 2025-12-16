@@ -21,17 +21,82 @@ class AIAdherenceService {
 
   // Ensure Gemini is initialized
   void _ensureInitialized() {
-    final apiKey = dotenv.env['API_KEY'];
-    if (apiKey == null ||
-        apiKey.isEmpty ||
-        apiKey == 'your_gemini_api_key_here') {
-      throw 'API key not configured. Please set your API_KEY in the .env file.';
-    }
-
+    // Check if dotenv is loaded
     try {
-      Gemini.init(apiKey: apiKey);
+      final apiKey = dotenv.env['API_KEY'];
+
+      // Debug: Check if API key was found
+      if (apiKey == null) {
+        throw 'API key not found in environment variables. Make sure the .env file is loaded and contains API_KEY=your_key';
+      }
+
+      if (apiKey.isEmpty) {
+        throw 'API key is empty in .env file. Please set API_KEY=your_gemini_api_key';
+      }
+
+      if (apiKey == 'your_gemini_api_key_here') {
+        throw 'API key not configured. Please replace "your_gemini_api_key_here" with your actual API key in the .env file';
+      }
+
+      // Validate API key format (Google API keys typically start with "AIza")
+      if (!apiKey.startsWith('AIza')) {
+        throw 'API key format appears invalid. Google API keys typically start with "AIza". Please verify your API key in the .env file.';
+      }
+
+      try {
+        // Initialize Gemini - this should be safe to call multiple times
+        // Note: Gemini.init() doesn't throw, but accessing Gemini.instance will throw NotInitializedError if not initialized
+        Gemini.init(apiKey: apiKey);
+
+        // Verify that the instance is accessible
+        // This will throw NotInitializedError if initialization failed
+        try {
+          // Access the instance to verify initialization
+          // This will throw NotInitializedError if not initialized
+          Gemini.instance;
+          // If we get here without exception, initialization was successful
+        } catch (instanceError) {
+          final instanceErrorStr = instanceError.toString();
+          if (instanceErrorStr.contains('NotInitialized') ||
+              instanceErrorStr.contains('NotInitializedError') ||
+              instanceErrorStr.contains('not initialized')) {
+            // The initialization might have failed silently
+            // Try re-initializing with the same key
+            try {
+              Gemini.init(apiKey: apiKey);
+              // Try accessing instance again
+              Gemini.instance;
+            } catch (retryError) {
+              // If it still fails, the API key might be invalid or there's a deeper issue
+              throw 'Gemini API failed to initialize. Please verify:\n'
+                  '1. Your API key is valid (check at https://makersuite.google.com/app/apikey)\n'
+                  '2. Your API key has the correct format (should start with AIza...)\n'
+                  '3. You have internet connectivity\n'
+                  'Error details: $instanceError';
+            }
+          } else {
+            rethrow;
+          }
+        }
+      } catch (e) {
+        final errorStr = e.toString();
+        if (errorStr.contains('NotInitialized') ||
+            errorStr.contains('not initialized') ||
+            errorStr.contains('not accessible')) {
+          throw 'Gemini API not initialized. Please check your API_KEY in the .env file. Error: $e';
+        }
+        throw 'Failed to initialize Gemini API. Please check your API_KEY in the .env file. Error: $e';
+      }
     } catch (e) {
-      throw 'Failed to initialize Gemini API. Please check your API_KEY in the .env file.';
+      // Re-throw our custom error messages
+      final errorStr = e.toString();
+      if (errorStr.contains('API key') ||
+          errorStr.contains('not initialized') ||
+          errorStr.contains('not accessible') ||
+          errorStr.contains('Environment variables')) {
+        rethrow;
+      }
+      throw 'Error initializing Gemini API: $e';
     }
   }
 
@@ -355,8 +420,29 @@ class AIAdherenceService {
     try {
       // Ensure initialization before accessing instance (called again here for safety)
       _ensureInitialized();
-      
-      final gemini = Gemini.instance;
+
+      // Access Gemini.instance with error handling for NotInitializedError
+      Gemini gemini;
+      try {
+        gemini = Gemini.instance;
+      } catch (e) {
+        final errorStr = e.toString();
+        if (errorStr.contains('NotInitialized') ||
+            errorStr.contains('NotInitializedError')) {
+          // Try to re-initialize
+          final apiKey = dotenv.env['API_KEY'];
+          if (apiKey != null && apiKey.isNotEmpty) {
+            Gemini.init(apiKey: apiKey);
+            // Try accessing instance again
+            gemini = Gemini.instance;
+          } else {
+            throw 'Gemini API not initialized. API key not found in environment variables.';
+          }
+        } else {
+          rethrow;
+        }
+      }
+
       final response = await gemini.prompt(parts: [Part.text(prompt.trim())]);
 
       // Extract text from response
@@ -383,12 +469,32 @@ class AIAdherenceService {
 
       return jsonResponse;
     } catch (e) {
-      // Handle NotInitialized exception specifically
+      // Handle various error types
       final errorString = e.toString();
-      if (errorString.contains('NotInitialized') || 
+
+      // Handle NotInitialized exception specifically
+      if (errorString.contains('NotInitialized') ||
+          errorString.contains('NotInitializedError') ||
           errorString.contains('not initialized')) {
-        throw 'Gemini API not initialized. Please check your API_KEY in the .env file.';
+        throw 'Gemini API not initialized. Please ensure your API_KEY in the .env file is valid and the app has been restarted after adding it.';
       }
+
+      // Handle API key configuration errors
+      if (errorString.contains('API key not configured') ||
+          errorString.contains('Environment variables not loaded')) {
+        throw e.toString(); // Re-throw the original error message
+      }
+
+      // Handle API errors
+      if (errorString.contains('401') || errorString.contains('403')) {
+        throw 'Invalid API key. Please check your API_KEY in the .env file.';
+      }
+
+      if (errorString.contains('429')) {
+        throw 'API quota exceeded. Please check your usage limits.';
+      }
+
+      // Generic error
       throw 'Failed to generate adherence report: $e';
     }
   }

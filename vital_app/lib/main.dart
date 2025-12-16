@@ -10,8 +10,18 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
-    // Load environment variables
-    await dotenv.load(fileName: ".env");
+    // Load environment variables from assets
+    // The .env file should be in the assets section of pubspec.yaml
+    try {
+      await dotenv.load(fileName: ".env");
+      debugPrint('Successfully loaded .env file from assets');
+    } catch (e) {
+      debugPrint('Warning: Could not load .env file from assets.');
+      debugPrint('Error: $e');
+      debugPrint(
+        'Please ensure .env file exists in vital_app directory and is listed in pubspec.yaml assets.',
+      );
+    }
 
     // Initialize Gemini with API key from .env
     final apiKey = dotenv.env['API_KEY'];
@@ -20,24 +30,25 @@ void main() async {
         apiKey != 'your_gemini_api_key_here') {
       try {
         Gemini.init(apiKey: apiKey);
+        debugPrint('Gemini API initialized successfully.');
       } catch (e) {
         // Log error but don't crash the app
         debugPrint('Warning: Failed to initialize Gemini: $e');
         debugPrint(
-          'Chat functionality may not work. Please check your API_KEY in .env file.',
+          'AI Adherence functionality may not work. Please check your API_KEY in .env file.',
         );
       }
     } else {
       debugPrint('Warning: API_KEY not found or invalid in .env file.');
       debugPrint(
-        'Chat functionality will not work. Please set API_KEY=your_actual_api_key in .env file.',
+        'AI Adherence functionality will not work. Please create a .env file in vital_app directory with: API_KEY=your_actual_api_key',
       );
     }
   } catch (e) {
     // If .env file doesn't exist or can't be loaded, log warning
     debugPrint('Warning: Could not load .env file: $e');
     debugPrint(
-      'Chat functionality will not work. Please create a .env file with API_KEY=your_actual_api_key',
+      'AI Adherence functionality will not work. Please create a .env file in vital_app directory with: API_KEY=your_actual_api_key',
     );
   }
 
