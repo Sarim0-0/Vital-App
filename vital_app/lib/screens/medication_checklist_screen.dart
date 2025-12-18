@@ -370,6 +370,8 @@ class _MedicationChecklistScreenState extends State<MedicationChecklistScreen> {
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                                 subtitle: Text(
                                   '${parsedSlots.length} time${parsedSlots.length > 1 ? 's' : ''} per day',

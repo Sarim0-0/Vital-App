@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../services/health_service.dart';
 import '../services/health_data_service.dart';
 import '../theme/patient_theme.dart';
+import 'live_tracking_screen.dart';
 
 class HealthMetricsScreen extends StatefulWidget {
   const HealthMetricsScreen({super.key});
@@ -281,6 +282,7 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
     required String? value,
     required String unit,
     required Color color,
+    Widget? actionButton,
   }) {
     return PatientTheme.buildCard(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -325,6 +327,10 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
               ],
             ),
           ),
+          if (actionButton != null) ...[
+            const SizedBox(width: 12),
+            actionButton,
+          ],
         ],
       ),
     );
@@ -363,6 +369,7 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
           const SizedBox(height: 20),
           TextField(
             controller: _stepsController,
+            maxLines: 1,
             decoration: InputDecoration(
               labelText: 'Steps',
               prefixIcon: const Icon(Icons.directions_walk),
@@ -380,6 +387,7 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
           const SizedBox(height: 16),
           TextField(
             controller: _caloriesController,
+            maxLines: 1,
             decoration: InputDecoration(
               labelText: 'Calories Burned',
               prefixIcon: const Icon(Icons.local_fire_department),
@@ -391,11 +399,12 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
               filled: true,
               fillColor: Colors.grey[50],
             ),
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _sleepController,
+            maxLines: 1,
             decoration: InputDecoration(
               labelText: 'Hours Slept',
               prefixIcon: const Icon(Icons.bedtime),
@@ -407,11 +416,12 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
               filled: true,
               fillColor: Colors.grey[50],
             ),
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
           ),
           const SizedBox(height: 16),
           TextField(
             controller: _heartRateController,
+            maxLines: 1,
             decoration: InputDecoration(
               labelText: 'Heart Rate (BPM)',
               prefixIcon: const Icon(Icons.favorite),
@@ -509,7 +519,9 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                 const SizedBox(height: 24),
                 FilledButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    if (Navigator.of(context).canPop()) {
+                      Navigator.of(context).pop();
+                    }
                   },
                   style: FilledButton.styleFrom(
                     backgroundColor: PatientTheme.primaryColor,
@@ -632,6 +644,23 @@ class _HealthMetricsScreenState extends State<HealthMetricsScreen> {
                 value: _steps?.toString(),
                 unit: 'steps',
                 color: Colors.blue,
+                actionButton: IconButton(
+                  icon: const Icon(Icons.map),
+                  color: PatientTheme.primaryColor,
+                  tooltip: 'Live Tracking',
+                  onPressed: () {
+                    if (mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LiveTrackingScreen(
+                            initialSteps: _steps,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ),
               _buildMetricCard(
                 title: 'Calories Burned',
